@@ -2,12 +2,12 @@
 const formularioUI = document.getElementById('formProduct');
 const productsListUI = document.getElementById('productsList');
 const formularioModal = document.getElementById('formProductEdit');
+const modalEdit = document.getElementById('modal-container');
 
 let arrayProducts = [];
 
 // Funciones
 const CreateProduct = (formulario) => {
-    console.log('formCreate=>', formulario)
 
     let product = {
         name: formulario.name,
@@ -20,30 +20,36 @@ const CreateProduct = (formulario) => {
     return product;
 }
 
-const EditProduct = (formulario) => {
+const EditProduct = (name, form) => {
 
-    console.log('formulario=>', formulario)
-
-    arrayProducts.map(product => {
-
-        console.log('product=>', product);
-        product.name = formulario.name;
-        product.quantity = formulario.quantity;
-        product.price = formulario.price;
-        product.boughtAt = formulario.boughtAt;
-
-
-    });
-
+    arrayProducts.forEach(element => {
+        if (element.name === name) {
+            element.name = form.name;
+            element.quantity = form.quantity;
+            element.price = form.price;
+            element.boughtAt = form.boughtAt;
+        }
+    })
+    
     SaveDB();
-    DrawDB();
-
 }
 
 const SaveDB = () => {
     localStorage.setItem('Productos', JSON.stringify(arrayProducts));
 
     DrawDB();
+}
+
+const DeleteDB = (name) => {
+
+        arrayProducts.forEach(element => {
+            if (element.name === name) {
+                let index = arrayProducts.indexOf(name);
+                arrayProducts.splice(index, 1);
+                SaveDB();
+            }
+        })
+
 }
 
 const DrawDB = () => {
@@ -61,8 +67,8 @@ const DrawDB = () => {
             <td>${element.boughtAt}</td>
             <td class="colActions">
             
-            <button type="button" id="btnEdit${element.name}" data-bs-toggle="modal" data-bs-target="#exampleModal" name="btn-edit" class="btn btn-primary btn-sm"><i class="fa fa-edit text-ligth" aria-hidden="true"></i></button>
-            <button type="button" id="btnDelete${element.name}" name="btn-delete" class="btn btn-danger btn-sm"><i class="fa fa-trash text-ligth" aria-hidden="true"></i></button>
+            <button type="button" id="${element.name}" data-bs-toggle="modal" data-bs-target="#exampleModal" class="btn btn-primary btn-sm"><i id="${element.name}" class="fa fa-edit text-ligth" aria-hidden="true"></i></button>
+            <button type="button" id="${element.name}" class="delete btn btn-danger btn-sm"><i id="${element.name}"  class="delete fa fa-trash text-ligth" aria-hidden="true"></i></button>
             </td>
         </tr>
         
@@ -104,12 +110,11 @@ const DrawDB = () => {
     
                             </div>
     
-    
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" onclick="EditProduct(${document.getElementById('editProductName')})" class="btn btn-primary">Save changes</button>
+                        <button type="button" id="${element.name}" class="edit btn btn-primary">Save changes</button>
                     </div>
                 </div>
             </div>
@@ -122,6 +127,7 @@ const DrawDB = () => {
 // EventListener
 
 formularioUI.addEventListener('submit', (e) => {
+    
     e.preventDefault();
     let productUI = {
         name: document.getElementById('productName').value,
@@ -129,11 +135,32 @@ formularioUI.addEventListener('submit', (e) => {
         price: document.getElementById('productPrice').value,
         boughtAt: document.getElementById('boughtAt').value
     }
-
+    
     CreateProduct(productUI);
     SaveDB();
-
+    
     formularioUI.reset();
 });
 
-document.addEventListener('DOMContentLoaded', DrawDB)
+document.addEventListener('DOMContentLoaded', DrawDB);
+
+productsListUI.addEventListener('click', (e) => {
+    
+    e.preventDefault();
+
+    let productUI = {
+        name: document.getElementById('editProductName').value,
+        quantity: document.getElementById('editProductQuantity').value,
+        price: document.getElementById('editProductPrice').value,
+        boughtAt: document.getElementById('editBoughtAt').value
+    }
+
+    if (e.target.classList[0] == 'delete') {
+        DeleteDB(e.target.id);
+    }
+
+    if (e.target.classList[0] == 'edit') {
+        EditProduct(e.target.id, productUI);
+    }
+
+})
